@@ -1,4 +1,4 @@
-= Setup Jenkins On Local Machine
+= Setup Jenkins And JFrog On Local Machine
 :toc: left
 :author: Jonny
 :revnumber!: 1.0.0
@@ -19,7 +19,8 @@
 :xrefstyle: full
 :imagesdir: images/
 
-https://www.blazemeter.com/blog/how-to-install-jenkins-on-windows/[From this tutorial]
+=== Jenkins
+https://www.blazemeter.com/blog/how-to-install-jenkins-on-windows/[Jenkins Setup]
 
 http://mirrors.jenkins.io/windows/latest[Download Latest Jenkins]
 
@@ -39,3 +40,182 @@ image::4.png[]
 
 .Install the default suggested plugins
 image::5.png[]
+
+=== JFrog
+https://www.jfrog.com/confluence/display/RTF/Installing+on+Windows[Jfrog setup]
+
+or
+https://devops4solutions.com/jfrog-artifactory-download-installation/[Jfrog Setup]
+
+https://bintray.com/jfrog/artifactory/jfrog-artifactory-oss-zip/4.15.0[Download Jfrog]
+
+Setup Jfrog
+https://devops4solutions.com/jfrog-artifactory-download-installation/
+
+- Extract the zip file
+- run / click the */bin/artifactory.bat*
+- Go to the browser and visit localhost:8081 in order to visit to the artifactory in browser.
+- Log in as admin by providing the default credentials:
+
+    Username: admin
+    Password: password
+
+- You can create a Local repository to store package files created by the Jenkins/Maven project:
+Go to Admin -> Repositories ->Local -> New
+
+    . Select maven
+    . Provide key (name: Jenkins-integration) for your repository and check Handle Release and deselect Handle Snapshot
+    . Similarly create another local repository with key (e.g. Jenkins-snapshot) and check Handle Snapshot while deselecting Handle Release.
+    . Also, create a user that you can utilize from Jenkins to access Artifactory:
+Go to admin -> Security -> users -> Click on NEW from Users management window -> Add new user->Save
+    . Furthermore, provide the newly created user with permissions to the repositories:
+
+    Firstly, go to admin -> security-> permission
+
+    Secondly, give the name to the permission
+
+    Lastly, choose the repositories on which you want to set the permission
+    (jenkins-integration and jenkins-snapshot)
+
+    Click save & finish
+
+== Jenkins integration with JFrog Artifactory
+https://devops4solutions.com/jenkins-jfrog-artifactory-integration/
+
+Step II. Artifactory Plugin configuration in Jenkins
+
+a. Go to Jenkins dashboard -> Manage Jenkins -> Manage Plugins -> Available -> Artifactory -> Install without restart.
+
+b. Configure Artifactory-related settings in Jenkins:
+
+Go to Jenkins dashboard -> Configure System ->Artifactory section ->Add artifactory server -> provide the details -> Test the connection ->apply & save
+
+
+d. Go to a Jenkins project that creates a package file after compiling all of the source files.
+
+e. Go to Build Environment section -> Resolve artifacts from artifactory -> Click on refresh Repositories ->select the repository in release and snapshot field from the lists.
+
+c. Go to a Jenkins project that creates a package file after compiling all of the source files.
+
+Go to Build Environment section -> Resolve artifacts from artifactory -> Click on refresh Repositories ->select the repository in release and snapshot field from the lists.
+
+
+d. Go to Add post-build section ->select deploy artifacts to artifactory -> click on refresh -> choose the target releases and snapshot repository (repositories created earlier) ->save
+
+
+e. Click on Build now and verify logs in the Console Output. Jar files are resolved from the local repository or Artifactory.
+
+f. Once the package is created, it is stored in artifactory too. Go in the artifactory and check the package.
+
+== Push Base Code to JFROG
+https://medium.com/@anusha.sharma3010/configuring-maven-repository-manager-with-jfrog-artifactory-a0eb4b98dc22
+
+Create this 4 and assign to jenkins user
+
+image::6.png[]
+
+image::7.png[]
+
+image::8.png[]
+
+.Check your encrypted password
+image::9.png[]
+
+.Download the example setting.xml and edit and paste it there
+image::10.png[]
+
+use *mvn clean deploy* to push to jfrog
+
+
+Example complete settings.xml
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.1.0 http://maven.apache.org/xsd/settings-1.1.0.xsd"
+    xmlns="http://maven.apache.org/SETTINGS/1.1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <servers>
+    <server>
+      <username>jenkins</username>
+      <password>AP5MnRpvgBR2B2e9syJwPRV3AX</password>
+      <id>central</id>
+    </server>
+    <server>
+      <username>jenkins</username>
+      <password>AP5MnRpvgBR2B2e9syJwPRV3AX</password>
+      <id>snapshots</id>
+    </server>
+  </servers>
+  <profiles>
+    <profile>
+      <repositories>
+        <repository>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>central</id>
+          <name>qfpi-release-local</name>
+          <url>http://localhost:8081/artifactory/qfpi-release-local</url>
+        </repository>
+        <repository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>qfpi-snapshot-local</name>
+          <url>http://localhost:8081/artifactory/qfpi-snapshot-local</url>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>central</id>
+          <name>plugins-release-qfpi-local</name>
+          <url>http://localhost:8081/artifactory/plugins-release-qfpi-local</url>
+        </pluginRepository>
+        <pluginRepository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>plugins-snapshot-qfpi-local</name>
+          <url>http://localhost:8081/artifactory/plugins-snapshot-qfpi-local</url>
+        </pluginRepository>
+      </pluginRepositories>
+      <id>artifactory</id>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>artifactory</activeProfile>
+  </activeProfiles>
+</settings>
+
+----
+
+At the pom.xml on you code add this (* can get this from jfrog->artifact-Set Me Up)
+[source,xml]
+----
+<distributionManagement>
+    <repository>
+        <id>central</id>
+        <name>Zero-releases</name>
+        <url>http://localhost:8081/artifactory/qfpi-release-local</url>
+    </repository>
+
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>Zero-snapshots</name>
+        <url>http://localhost:8081/artifactory/qfpi-snapshot-local</url>
+    </snapshotRepository>
+</distributionManagement>
+----
+
+=== Work with Jenkins & Jfrog
+
+image::11.png[]
+
+image::12.png[]
+
+configur your maven git docker, etc
+
+http://localhost:9000/configureTools/
+image::13.png[]
