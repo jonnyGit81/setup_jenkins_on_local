@@ -32,3 +32,8 @@ image::1.png[]
 image::2.png[]
 
 After change the port you need to restart jenkins service at the windows service manager
+
+
+.To get the default secret on first launch the jenkins
+image::4.png[]
+image::5.png[]
