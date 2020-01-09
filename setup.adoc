@@ -1,0 +1,34 @@
+= Setup Jenkins On Local Machine
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate:
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 10
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:toc: left
+:xrefstyle: full
+:imagesdir: images/
+
+https://www.blazemeter.com/blog/how-to-install-jenkins-on-windows/[From this tutorial]
+
+http://mirrors.jenkins.io/windows/latest[Download Latest Jenkins]
+
+Install jenkins as usually.
+
+.Extract the downloaded zip file to get the exe file and install as the usual.
+image::1.png[]
+
+.If you want to change jenkins default port.
+image::2.png[]
+
+After change the port you need to restart jenkins service at the windows service manager
